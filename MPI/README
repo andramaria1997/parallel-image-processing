@@ -1,0 +1,43 @@
+Copyright: Andra-Maria DANCIU
+
+                                    README
+
+    The goal of this project is to build a scalable MPI program that can apply
+multiple filters on images. For the ease of this project, only 3 x 3 filters are
+considered, applied on .pnm and .pgm files. For computing each pixel value, we
+update the value of each pixel with the sum of the resulting values by
+multiplying each element from the filter kernel matrix with the value of each
+pixel and its surrounding neighbors.
+    The programs parameters are input image, output image, and the filters in
+the same order that are going to be applied:
+
+  $ mpirun -np N ./apply_filters image_in.pnm image_out.pnm filter1 filter2 ...
+
+# Filters available:
+
+ * smooth
+ * blur
+ * sharpen
+ * mean
+ * emboss
+
+    Process 0 is responsible of reading the unmodified image from file and
+writing the image in the output file after applying all filters. After the first
+process reads the image's header, it broadcasts the width, the height, and the
+type of the image (color or grayscale) in order for the other processes to know
+how much space is going to be allocated to receive that part of the image. As
+the next step, the pixel matrix is divided into N equal parts (N being the
+number of processes), except the last lines which are going to be distributed to
+the last process. The N parts are sent line by line to the corresponding
+process. Lines are tagged with their indices in the matrix, so that a mismatch
+is avoided.
+    Considering the image split and sent, all filters are applied one by one,
+each process being responsible only of the received part of the image. The
+filters are applied using applyFilter function, given the kernel as a parameter.
+After each filter has been applied, the border lines are exchanged between
+consecutive processes, to obtain correctly computed values of pixels and better
+precision. Even if the border is left untouched, it is necessary in computing
+the rest of the matrix. Then, after the new matrix is correctly computed, it is
+sent back to process 0 to be written in the output file. The resulted image has
+the same dimensions as the input image.
+

@@ -1,0 +1,46 @@
+            README
+            
+
+    Running parameters:
+
+  $ ./task1 inputImageName outputImageName resizeFactor numThreads
+  $ ./task2 outputImageName width numThreads
+
+    Test: use resize factor 2, 3 or 8 and then:
+
+  $ diff <output file> out_ref/<resize tested>
+            
+    This program resizes one image minimizing the loss of information using
+super sampling antialiasing. The second part is a micro renderer engine, capable
+of creating one image containing one black line. The purpose of this project is
+the concept of multithreading image processing (I use pthreads lib; implementation
+in C). For simplifying the process, I used pnm images.
+
+    Part I: Super Sampling Anti Aliasing
+
+    Rendering one image can produce the side effect of aliasing, causing the
+pixels to become indistinguishable. One common method of solving this problem
+is rendering the image at a larger dimension, and then resize it back by pixel
+approximations. Using SSAA, this is not nexessary. Every pixel from the final
+image is made of more pixels from the original image.Precisely, you take one
+square of pixels and turn it into one single pixel. This results in an image of
+size resize_factor times smaller than the original image. This program is a
+simplified version of this tehnique, taking as arguments only even values of
+resize factor, and value 3 (for odd values, only resize_factor == 3 is taken
+into consideration). For an even resize_factor, the new pixel represents the
+average of the pixels in a resize_factor*resize_factor pixel square. For the
+particular case of value 3, every pixel value from the res_fact*res_fact matrix
+is multiplied with corresponding value from Gaussian Kernel matrix, then these
+products' average is computed, representing the new pixel. The image cand be
+color or grayscale. In case of a color image, all the mathematical process
+described above is implemented for every color (RGB colors are computed one by
+one, separately). 
+
+
+    Part II:
+
+    The purpose of this task was multithreading a micro renderer image. I proposed
+to draw a line of equation < -x + 2*y = 0 >, with a thickness of 3cm, assuming the
+image is 100cm * 100cm. The distance of every pixel from the line is computed, and
+if the distance is smaller than 3, then that pixel is supposed to be black. Else,
+it has to be white.
